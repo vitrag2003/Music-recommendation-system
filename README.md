@@ -11,26 +11,26 @@
       line-height: 1.6;
       margin: 20px;
     }
-
+{
     h1,
     h2,
     h3 {
       color: #1DB954;
     }
-
+{
     a {
       color: #0366d6;
     }
-
+{
     p {
       margin-bottom: 20px;
     }
-
+{
     ul {
       list-style: none;
       padding: 0;
     }
-
+{
     li {
       margin-bottom: 10px;
     }
