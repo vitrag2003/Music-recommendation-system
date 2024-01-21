@@ -1,0 +1,3 @@
+20.Dec 2023 21:52:01: expected string or bytes-like object, got 'float'
+20.Dec 2023 21:56:10: index 14099 is out of bounds for axis 0 with size 14099
+20.Dec 2023 21:56:13 _________________________ Total Number Of Errors : 2 _________________________ 
