@@ -1,5 +1,0 @@
-.cache
-__pycache__
-Spotify/*
-.streamlit/
-Data/streamlit-new.csv
