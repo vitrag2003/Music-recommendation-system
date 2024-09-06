@@ -6,6 +6,8 @@ import streamlit as st
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.client import SpotifyException
+import warnings
+warnings.filterwarnings('ignore')
 
 # Load the model
 recommender = joblib.load('recommender.pkl')
@@ -16,17 +18,20 @@ data = pd.read_csv('data.csv')
 data.set_index('id', inplace=True)
 
 # Define the features to be used for the recommendation
-features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']
+features = ['acousticness', 'danceability', 'duration_ms', 'energy', 
+    'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 
+    'speechiness', 'tempo', 'valence',
+]
 
 
-client_id = '50beacb0249f4571ab26da522c0fba5b'
-client_secret = '9db120d4abec4c1fa0fb3c5ffe53ed92'
+client_id = '6444952d25014134affbddb6854f27c7'
+client_secret = '49c9c42e4b54426785ae5856b45b719e'
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
 
 def get_track_id(track_name, artist_name):
     try:
         results = sp.search(q=f'artist:{artist_name} track:{track_name}')
-        print(results)
+        # print(results)
         return results['tracks']['items'][0]['id']
     except SpotifyException:
         return None
@@ -34,6 +39,8 @@ def get_track_id(track_name, artist_name):
 def get_track_features(track_id):
     try:
         features = sp.audio_features(track_id)
+        language=sp.
+        # print(features)
         return features[0]
     except SpotifyException:
         return None
@@ -67,27 +74,33 @@ def recommend_songs_by_artist(song_id, num_recommendations=5):
     return recommended_songs[:num_recommendations]
 
 def recommend_songs(song_id, num_recommendations_by_id=3, num_recommendations_by_artist=2):
-    rec_by_id = recommend_songs_by_id(song_id, num_recommendations_by_id)
     rec_by_artist = recommend_songs_by_artist(song_id, num_recommendations_by_artist)
+    diff = num_recommendations_by_artist - len(rec_by_artist)
+    if diff > 0:
+        rec_by_id = recommend_songs_by_id(song_id, num_recommendations_by_id + diff)
+    else:   
+        rec_by_id = recommend_songs_by_id(song_id, num_recommendations_by_id)
+
     combined_recs = np.concatenate((rec_by_id, rec_by_artist))
-    return data.loc[combined_recs[:num_recommendations_by_artist+num_recommendations_by_id], ['name', 'artists_name', 'year', 'popularity']]
+    return data.loc[combined_recs[:num_recommendations_by_artist+num_recommendations_by_id], ['name', 'artists_name', 'year']]
 
 
 def get_recommendations(track_name, artist_name):
+    global data
     track_id = get_track_id(track_name, artist_name)
     if track_id is None:
         return None
+    # print(track_id)
     if data[data.index == track_id].empty:
+        print('Song not found in the dataset')
         song_features = get_track_features(track_id)
         if song_features is None:
             return None
         
         print(song_features)
         song_features = pd.DataFrame(song_features, index=[track_id])
-        song_features['artists_name'] = artist_name
-        song_features['name'] = track_name
         
-        data = pd.concat([data, song_features])
+        data = pd.concat([data, song_features[features]], axis=1)
         song_id = track_id
     else:
         song_id = track_id
